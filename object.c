@@ -88,4 +88,47 @@ int object_write(ObjectType type, const void *data, size_t len, ObjectID *id_out
         free(buffer);
         return 0;
     }
+    char path[512];
+    object_path(id_out, path, sizeof(path));
 
+    char hex[HASH_HEX_SIZE + 1];
+    hash_to_hex(id_out, hex);
+
+    char dir[512];
+    snprintf(dir, sizeof(dir), "%s/%.2s", OBJECTS_DIR, hex);
+
+    mkdir(OBJECTS_DIR, 0755);
+    mkdir(dir, 0755);
+
+    char temp[512];
+    snprintf(temp, sizeof(temp), "%s.tmp", path);
+
+    int fd = open(temp, O_CREAT | O_WRONLY | O_TRUNC, 0644);
+    if (fd < 0) {
+        free(buffer);
+        return -1;
+    }
+
+    if (write(fd, buffer, total_len) != (ssize_t)total_len) {
+        close(fd);
+        free(buffer);
+        return -1;
+    }
+
+    fsync(fd);
+    close(fd);
+
+    if (rename(temp, path) != 0) {
+        free(buffer);
+        return -1;
+    }
+
+    int dfd = open(dir, O_RDONLY);
+    if (dfd >= 0) {
+        fsync(dfd);
+        close(dfd);
+    }
+
+    free(buffer);
+    return 0;
+}
