@@ -133,4 +133,24 @@ int index_status(const Index *index) {
     FILE *fp = fopen(".pes/index", "r");
     if (!fp) return 0;
     char hex[65];
+    while (1) {
+      IndexEntry *e = &index->entries[index->count];
+
+      int rc = fscanf(fp, "%o %64s %u %u %255s",
+                    &e->mode,
+                    hex,
+                    &e->mtime_sec,
+                    &e->size,
+                    e->path);
+
+      if (rc != 5) break;
+
+      hex_to_hash(hex, &e->hash);
+      index->count++;
+}
+
+    fclose(fp);
+    return 0;
+}
+
 
