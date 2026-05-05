@@ -188,3 +188,16 @@ int object_read(const ObjectID *id, ObjectType *type_out, void **data_out, size_
         return -1;
     }
 
+    *len_out = file_size - header_len;
+
+    *data_out = malloc(*len_out);
+    if (!*data_out) {
+        free(buffer);
+        return -1;
+    }
+
+    memcpy(*data_out, buffer + header_len, *len_out);
+
+    free(buffer);
+    return 0;
+}
