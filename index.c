@@ -171,4 +171,16 @@ int index_save(const Index *index) {
     fclose(fp);
     return 0;
 }
+int index_add(Index *index, const char *path) {
+    FILE *fp = fopen(path, "rb");
+    if (!fp) return -1;
+
+    fseek(fp, 0, SEEK_END);
+    long size = ftell(fp);
+    rewind(fp);
+
+    char *buffer = malloc(size ? size : 1);
+    fread(buffer, 1, size, fp);
+    fclose(fp);
+
 
