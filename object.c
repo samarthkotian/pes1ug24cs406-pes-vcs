@@ -132,3 +132,18 @@ int object_write(ObjectType type, const void *data, size_t len, ObjectID *id_out
     free(buffer);
     return 0;
 }
+int object_read(const ObjectID *id, ObjectType *type_out, void **data_out, size_t *len_out) {
+    char path[512];
+    object_path(id, path, sizeof(path));
+
+    FILE *fp = fopen(path, "rb");
+    if (!fp) return -1;
+
+    fseek(fp, 0, SEEK_END);
+    long file_size = ftell(fp);
+    rewind(fp);
+
+    if (file_size <= 0) {
+        fclose(fp);
+        return -1;
+    }
