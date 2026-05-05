@@ -182,5 +182,26 @@ int index_add(Index *index, const char *path) {
     char *buffer = malloc(size ? size : 1);
     fread(buffer, 1, size, fp);
     fclose(fp);
+        ObjectID oid;
+    object_write(OBJ_BLOB, buffer, size, &oid);
+
+    free(buffer);
+        struct stat st;
+    stat(path, &st);
+
+    IndexEntry *entry = index_find(index, path);
+
+    if (!entry)
+        entry = &index->entries[index->count++];
+
+    entry->mode = 100644;
+    entry->mtime_sec = st.st_mtime;
+    entry->size = st.st_size;
+    strcpy(entry->path, path);
+    entry->hash = oid;
+
+    return index_save(index);
+}
+    
 
 
